@@ -1,27 +1,44 @@
-import random
 import math
 import copy
+import time
 
 def main():
     print("Welcome to Sazen Shakya's Selection Algorithm.")
+    
+    start_time = time.time() # start timer
+    
     file_name = input("Type in name of the file to test: ")
     algorithm = input("Type the number of the algorithm you want to run.\n\t1) Forward Selection\n\t2) Backward Elimination\n")
-    data = [list(map(float, line.split())) for line in open(file_name)]
+    data = [list(map(float, line.split())) for line in open(file_name)] # read in dataset into data as a 2D list
+    
     print(f"\nThis dataset has {len(data[0])-1} features (not including the class attribute), with {len(data)} instances.")
     print("Beginning search.")
+    
     if algorithm == '1':
-        forward_selection(data)
+        forward_selection(data) 
     else:
         backward_elimination(data)
+        
+    end_time = time.time()  
+    elapsed_time = end_time - start_time  
+    
+    # calculate elasped time in hours, minutes, seconds
+    hours = (elapsed_time / 3600)
+    minutes = elapsed_time / 60
+    seconds = int(elapsed_time % 60)
+
+    print(f"\nTotal execution time: {hours:.2f} hours or {minutes:.2f} minutes or {seconds} seconds.")
+
 
 
 def leave_one_out_cross_validation(data, currentSet, feature_to_add):
-    copy_data = copy.deepcopy(data)
+    copy_data = copy.deepcopy(data) # create deepcopy of dataset
     columns_to_keep = currentSet.copy()
 
     if feature_to_add > 0:
-        columns_to_keep.append(feature_to_add)
+        columns_to_keep.append(feature_to_add) # add new feature to keep that column's data
 
+    # set all other feature's data to 0s
     for row in copy_data:
         for col_index in range(1, len(row)):
             if col_index not in columns_to_keep:
@@ -36,20 +53,22 @@ def leave_one_out_cross_validation(data, currentSet, feature_to_add):
         nearest_neighbor_label = None
         for k in range(len(copy_data)):
             if k != i:
-                distance = math.sqrt(sum((a - b) ** 2 for a, b in zip(object_to_classify, copy_data[k][1:])))
+                distance = math.sqrt(sum((a - b) ** 2 for a, b in zip(object_to_classify, copy_data[k][1:]))) # Euclidean Distance Formula
 
-                if distance < nearest_neighbor_distance:
+                if distance < nearest_neighbor_distance: # Update nearest distance if distance found is smaller
                     nearest_neighbor_distance = distance
                     nearest_neighbor_label = copy_data[k][0]
 
-        if label_object_to_classify == nearest_neighbor_label:
+        if label_object_to_classify == nearest_neighbor_label: # Increment count if correctly classified
             number_correctly_classified += 1
         
-    accuracy = (number_correctly_classified / len(copy_data)) * 100
+    accuracy = (number_correctly_classified / len(copy_data)) * 100 # Calculate accuracy
     return accuracy
 
 def forward_selection(data):
     current_set_of_features = []
+    
+    # variables to hold which set of features are the best
     best_accuracy = 0
     best_set_of_features = []
 
@@ -57,55 +76,56 @@ def forward_selection(data):
         feature_to_add_on_level = None
         best_accuracy_on_level = 0
         for k in range(1, len(data[0])):
-            if k not in current_set_of_features:
+            if k not in current_set_of_features: # Make sure not comparing a feature already in the set
                 features_to_test = [k] + current_set_of_features
-                accuracy = leave_one_out_cross_validation(data,features_to_test,k)
+                accuracy = leave_one_out_cross_validation(data,features_to_test,k) # Calls classifier to get accuracy
                 print(f"\tUsing feature(s) {{{', '.join(map(str, features_to_test))}}} accuracy is {accuracy:.1f}%")
 
-                if accuracy > best_accuracy_on_level:
+                if accuracy > best_accuracy_on_level: # Updates best accuracy if current accuracy is highest seen on current level
                     best_accuracy_on_level = accuracy
                     feature_to_add_on_level = k
 
         if feature_to_add_on_level is not None:
-            current_set_of_features.insert(0,feature_to_add_on_level)
+            current_set_of_features.insert(0,feature_to_add_on_level) # Add feature to current set
 
-        if best_accuracy_on_level > best_accuracy:
+        if best_accuracy_on_level > best_accuracy: # Compare level's accuracy to best accuracy seen out of all levels
             best_accuracy = best_accuracy_on_level
             best_set_of_features = current_set_of_features.copy()
 
-        if i < len(data[0])-1:
+        if i < len(data[0])-1: # Does not output during level with all features
             print(f"Feature set {{{', '.join(map(str, current_set_of_features))}}} was best, accuracy is {best_accuracy_on_level:.1f}%")
     
     print(f"Finished search!! The best feature subset is {{{', '.join(map(str, best_set_of_features))}}}, which has an accuracy of {best_accuracy:.1f}%")
 
 # Questions: Do we output the beginning feature set and accuracy? Do we output 'feature set _ was best' for the last one with only 1 thing left in the set?
 def backward_elimination(data):
+    # Set current set to all features and calculates accuracy with all features
     current_set_of_features = list(range(1, len(data[0])))
     best_accuracy = leave_one_out_cross_validation(data,current_set_of_features,0) # 0 because no feature to add
     print(f"Feature set {{{', '.join(map(str, current_set_of_features))}}} was best, accuracy is {best_accuracy:.1f}%")
 
-    best_set_of_features = current_set_of_features.copy()
+    best_set_of_features = current_set_of_features.copy() # Inital best set starts off as all features
     for i in range(1, len(data[0])-1):
         feature_to_remove_on_level = None
         best_accuracy_on_level = 0
 
-        for k in current_set_of_features:
-            features_to_test = [item for item in current_set_of_features if item != k]
+        for k in current_set_of_features: # Iterates through features left in current set
+            features_to_test = [item for item in current_set_of_features if item != k] # Creates new list of features not including k'th feature
             accuracy = leave_one_out_cross_validation(data, features_to_test, 0)
             print(f"\tUsing feature(s) {{{', '.join(map(str, features_to_test))}}} accuracy is {accuracy:.1f}%")
 
-            if accuracy > best_accuracy_on_level:
+            if accuracy > best_accuracy_on_level: # Updates best accuracy if current accuracy is highest seen on current level
                 best_accuracy_on_level = accuracy
                 feature_to_remove_on_level = k
         
         if feature_to_remove_on_level is not None:
-            current_set_of_features.remove(feature_to_remove_on_level)
+            current_set_of_features.remove(feature_to_remove_on_level) # Remove feature from current set
         
-        if best_accuracy_on_level > best_accuracy:
+        if best_accuracy_on_level > best_accuracy: # Compare level's accuracy to best accuracy seen out of all levels
             best_accuracy = best_accuracy_on_level
             best_set_of_features = current_set_of_features.copy()
 
-        if i < len(data[0])-2:
+        if i < len(data[0])-2: # Does not output on level with just one feature left
             print(f"Feature set {{{', '.join(map(str, current_set_of_features))}}} was best, accuracy is {best_accuracy_on_level:.1f}%")
     
     print(f"Finished search!! The best feature subset is {{{', '.join(map(str, best_set_of_features))}}}, which has an accuracy of {best_accuracy:.1f}%")
