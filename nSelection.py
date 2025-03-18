@@ -3,15 +3,18 @@ import copy
 import time
 
 def main():
-    print("Welcome to Sazen Shakya's Selection Algorithm.")
+    print("Welcome to Sazen Shakya's Feature Selection Algorithm.")
     
     start_time = time.time() # Start timer
     
-    file_name = input("Type in name of the file to test: ")
+    file_name = input("Type in the name of the file to test: ")
     algorithm = input("Type the number of the algorithm you want to run.\n\t1) Forward Selection\n\t2) Backward Elimination\n")
     data = [list(map(float, line.split())) for line in open(file_name)] # Read in dataset into data as a 2D list
     
     print(f"\nThis dataset has {len(data[0])-1} features (not including the class attribute), with {len(data)} instances.")
+    set_of_features = list(range(1, len(data[0])))
+    accuracy = leave_one_out_cross_validation(data, set_of_features,0) # 0 because no feature to add 
+    print(f"Running nearest neighbor with all {len(data[0])-1} features, using \"leaving-one-out\" evaluation, I get an accuracy of {accuracy:.1f}%")
     print("Beginning search.")
     
     if algorithm == '1':
