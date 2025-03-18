@@ -5,11 +5,11 @@ import time
 def main():
     print("Welcome to Sazen Shakya's Selection Algorithm.")
     
-    start_time = time.time() # start timer
+    start_time = time.time() # Start timer
     
     file_name = input("Type in name of the file to test: ")
     algorithm = input("Type the number of the algorithm you want to run.\n\t1) Forward Selection\n\t2) Backward Elimination\n")
-    data = [list(map(float, line.split())) for line in open(file_name)] # read in dataset into data as a 2D list
+    data = [list(map(float, line.split())) for line in open(file_name)] # Read in dataset into data as a 2D list
     
     print(f"\nThis dataset has {len(data[0])-1} features (not including the class attribute), with {len(data)} instances.")
     print("Beginning search.")
@@ -22,23 +22,24 @@ def main():
     end_time = time.time()  
     elapsed_time = end_time - start_time  
     
-    # calculate elasped time in hours, minutes, seconds
+    # Calculate elapsed time in hours, minutes, seconds
     hours = (elapsed_time / 3600)
     minutes = elapsed_time / 60
     seconds = int(elapsed_time % 60)
 
     print(f"\nTotal execution time: {hours:.2f} hours or {minutes:.2f} minutes or {seconds} seconds.")
 
-
-
 def leave_one_out_cross_validation(data, currentSet, feature_to_add):
-    copy_data = copy.deepcopy(data) # create deepcopy of dataset
+    if not currentSet: # If current set empty
+        return calculate_empty_set_accuracy(data)
+    
+    copy_data = copy.deepcopy(data) # Create deepcopy of dataset
     columns_to_keep = currentSet.copy()
 
     if feature_to_add > 0:
-        columns_to_keep.append(feature_to_add) # add new feature to keep that column's data
+        columns_to_keep.append(feature_to_add) # Add new feature to keep that column's data
 
-    # set all other feature's data to 0s
+    # Set all other feature's data to 0s
     for row in copy_data:
         for col_index in range(1, len(row)):
             if col_index not in columns_to_keep:
@@ -65,10 +66,21 @@ def leave_one_out_cross_validation(data, currentSet, feature_to_add):
     accuracy = (number_correctly_classified / len(copy_data)) * 100 # Calculate accuracy
     return accuracy
 
+def calculate_empty_set_accuracy(data): 
+    count_class_1 = sum(1 for row in data if row[0] == 1)
+    count_class_2 = sum(1 for row in data if row[0] == 2)
+    
+    # Determines what class has the higher count
+    majority_class_count = max(count_class_1, count_class_2)
+    
+    # Calculates default rate
+    accuracy = (majority_class_count / len(data)) * 100
+    return accuracy
+
 def forward_selection(data):
     current_set_of_features = []
     
-    # variables to hold which set of features are the best
+    # Variables to hold which set of features are the best
     best_accuracy = 0
     best_set_of_features = []
 
@@ -97,7 +109,6 @@ def forward_selection(data):
     
     print(f"Finished search!! The best feature subset is {{{', '.join(map(str, best_set_of_features))}}}, which has an accuracy of {best_accuracy:.1f}%")
 
-# Questions: Do we output the beginning feature set and accuracy? Do we output 'feature set _ was best' for the last one with only 1 thing left in the set?
 def backward_elimination(data):
     # Set current set to all features and calculates accuracy with all features
     current_set_of_features = list(range(1, len(data[0])))
