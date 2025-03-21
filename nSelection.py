@@ -14,7 +14,7 @@ def main():
     print(f"\nThis dataset has {len(data[0])-1} features (not including the class attribute), with {len(data)} instances.")
     set_of_features = list(range(1, len(data[0])))
     accuracy = leave_one_out_cross_validation(data, set_of_features,0) # 0 because no feature to add 
-    print(f"Running nearest neighbor with all {len(data[0])-1} features, using \"leaving-one-out\" evaluation, I get an accuracy of {accuracy:.1f}%")
+    print(f"Running nearest neighbor with all {len(data[0])-1} features, using \"leaving-one-out\" evaluation, I get an accuracy of {accuracy:.1f}")
     print("Beginning search.")
     
     if algorithm == '1':
@@ -28,7 +28,7 @@ def main():
     # Calculate elapsed time in hours, minutes, seconds
     hours = (elapsed_time / 3600)
     minutes = elapsed_time / 60
-    seconds = int(elapsed_time % 60)
+    seconds = int(elapsed_time / 60)
 
     print(f"\nTotal execution time: {hours:.2f} hours or {minutes:.2f} minutes or {seconds} seconds.")
 
@@ -106,6 +106,8 @@ def forward_selection(data):
         if best_accuracy_on_level > best_accuracy: # Compare level's accuracy to best accuracy seen out of all levels
             best_accuracy = best_accuracy_on_level
             best_set_of_features = current_set_of_features.copy()
+        elif i < len(data[0])-1:
+            print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
 
         if i < len(data[0])-1: # Does not output during level with all features
             print(f"Feature set {{{', '.join(map(str, current_set_of_features))}}} was best, accuracy is {best_accuracy_on_level:.1f}%")
@@ -138,6 +140,8 @@ def backward_elimination(data):
         if best_accuracy_on_level > best_accuracy: # Compare level's accuracy to best accuracy seen out of all levels
             best_accuracy = best_accuracy_on_level
             best_set_of_features = current_set_of_features.copy()
+        elif i < len(data[0])-2:
+            print("(Warning, Accuracy has decreased! Continuing search in case of local maxima)")
 
         if i < len(data[0])-2: # Does not output on level with just one feature left
             print(f"Feature set {{{', '.join(map(str, current_set_of_features))}}} was best, accuracy is {best_accuracy_on_level:.1f}%")
